@@ -13,9 +13,7 @@ except Exception as e:
 
 openai.api_key = openAIAPiKey
 
-
 def lambda_handler(event, context):
-    print(event)
     # Passing the message to OpenAI
     query = openai.Completion.create(
         model="text-davinci-003",

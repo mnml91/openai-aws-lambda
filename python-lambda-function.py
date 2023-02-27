@@ -63,6 +63,28 @@ def elicit_intent(intent_request, session_attributes, message):
     }
 
 
+def createDrunkResultText(session_attributes):
+    if "small" in session_attributes and "medium" in session_attributes and "large":
+        flag = False
+        text = "You drunk "
+        if int(session_attributes['small']) > 1:
+            text = text + str(session_attributes['small']) + " small glasses"
+            flag = True
+        if int(session_attributes['medium']) > 1:
+            if flag:
+                text = text + " and"
+            text = text + " " + str(session_attributes['medium']) + " medium glasses"
+            flag = True
+        if int(session_attributes['large']) > 1:
+            if flag:
+                text = text + " and"
+            text = text + " " + str(session_attributes['large']) + " large glasses"
+        text = text + " of water today."
+        return text
+    else:
+        return "You have no stats for today."
+
+
 def lambda_handler(event, context):
     intent_name = event['sessionState']['intent']['name']
     if intent_name == 'DrankLiquidIntent':
@@ -70,7 +92,7 @@ def lambda_handler(event, context):
         numberOfGlass = get_slot(event, 'numberOfGlass')
         sizeOfBeverage = get_slot(event, 'sizeOfBeverage')
 
-        print("session_attributes")
+        print("session_attributes_before")
         print(session_attributes)
 
         if "small" in session_attributes and "medium" in session_attributes and "large":
@@ -88,29 +110,39 @@ def lambda_handler(event, context):
             updated_session_attributes[sizeOfBeverage] = numberOfGlass
             session_attributes = updated_session_attributes
 
+        print("session_attributes_afer")
         print(session_attributes)
 
-        flag = False
-        text = "Ok. You drunk "
-        if int(session_attributes['small']) > 1:
-            text = text + str(session_attributes['small']) + " small glasses"
-            flag = True
-        if int(session_attributes['medium']) > 1:
-            if flag:
-                text = text + " and"
-            text = text + " " + str(session_attributes['medium']) + " medium glasses"
-            flag = True
-        if int(session_attributes['large']) > 1:
-            if flag:
-                text = text + " and"
-            text = text + " " + str(session_attributes['large']) + " large glasses"
-        text = text + " of water today."
+        message = {
+            'contentType': 'PlainText',
+            'content': createDrunkResultText(session_attributes)
+        }
+        fulfillment_state = "Fulfilled"
 
+        return close(event, session_attributes, fulfillment_state, message)
+    elif intent_name == 'ReadDailyOverviewIntent':
+        session_attributes = get_session_attributes(event)
+
+        drunk_result_text = createDrunkResultText(session_attributes)
+        if drunk_result_text != "You have no stats for today.":
+            text = "Ok. This is your stats for today. " + createDrunkResultText(session_attributes)
+        else:
+            text = drunk_result_text
         message = {
             'contentType': 'PlainText',
             'content': text
         }
         fulfillment_state = "Fulfilled"
+
+        return close(event, session_attributes, fulfillment_state, message)
+    elif intent_name == 'ResetDailyOverviewIntent':
+        session_attributes = {}
+        message = {
+            'contentType': 'PlainText',
+            'content': 'Your daily stats have been successfully deleted.'
+        }
+        fulfillment_state = "Fulfilled"
+
         return close(event, session_attributes, fulfillment_state, message)
     else:
         # Passing the message to OpenAI
@@ -132,7 +164,7 @@ def lambda_handler(event, context):
                 "confidence": event['transcriptions'][0]['transcriptionConfidence']
             },
             "out": {
-                "message": content,
+                "message": "AI" + content,
                 "gptTokens": query.usage.total_tokens
             }
         })

@@ -164,7 +164,7 @@ def lambda_handler(event, context):
                 "confidence": event['transcriptions'][0]['transcriptionConfidence']
             },
             "out": {
-                "message": "AI" + content,
+                "message": content,
                 "gptTokens": query.usage.total_tokens
             }
         })
@@ -183,7 +183,7 @@ def lambda_handler(event, context):
             "messages": [
                 {
                     "contentType": "PlainText",
-                    "content": content
+                    "content": "AI: " + content,
                 }
             ]
         }

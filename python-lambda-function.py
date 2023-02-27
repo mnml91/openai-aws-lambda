@@ -67,15 +67,15 @@ def createDrunkResultText(session_attributes):
     if "small" in session_attributes and "medium" in session_attributes and "large":
         flag = False
         text = "You drunk "
-        if int(session_attributes['small']) > 1:
+        if int(session_attributes['small']) >= 1:
             text = text + str(session_attributes['small']) + " small glasses"
             flag = True
-        if int(session_attributes['medium']) > 1:
+        if int(session_attributes['medium']) >= 1:
             if flag:
                 text = text + " and"
             text = text + " " + str(session_attributes['medium']) + " medium glasses"
             flag = True
-        if int(session_attributes['large']) > 1:
+        if int(session_attributes['large']) >= 1:
             if flag:
                 text = text + " and"
             text = text + " " + str(session_attributes['large']) + " large glasses"
